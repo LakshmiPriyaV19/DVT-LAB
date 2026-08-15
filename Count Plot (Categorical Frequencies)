@@ -1,0 +1,52 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
+# Set visual style for academic presentation
+sns.set_theme(style="whitegrid")
+plt.rcParams["font.sans-serif"] = "DejaVu Sans"
+
+# Load the Starbucks dataset
+df = pd.read_csv("starbucks.csv")
+
+# Remove extra spaces from column names
+df.columns = df.columns.str.strip()
+
+print(df.head())
+
+plt.figure(figsize=(10, 6))
+
+order = df["Beverage_category"].value_counts().index
+
+ax = sns.countplot(
+    data=df,
+    y="Beverage_category",
+    order=order,
+    palette="viridis",
+    hue="Beverage_category",
+    legend=False,
+)
+
+plt.title(
+    "Frequency of Beverages by Category",
+    fontsize=14,
+    fontweight="bold"
+)
+plt.xlabel("Number of Beverages", fontsize=12)
+plt.ylabel("Beverage Category", fontsize=12)
+
+# Add data labels to bars
+for p in ax.patches:
+    width = p.get_width()
+    ax.annotate(
+        f"{int(width):,}",
+        (width, p.get_y() + p.get_height() / 2.0),
+        ha="left",
+        va="center",
+        xytext=(5, 0),
+        textcoords="offset points",
+    )
+
+plt.tight_layout()
+plt.show()
