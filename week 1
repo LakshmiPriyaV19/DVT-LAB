@@ -1,0 +1,245 @@
+# ==========================================================
+# CRISP-DM - INDIA CANCER PATIENT DATASET (2022-2025)
+# ==========================================================
+
+# -----------------------------
+# Import Libraries
+# -----------------------------
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# ==========================================================
+# 1. BUSINESS UNDERSTANDING
+# ==========================================================
+
+print("="*60)
+print("BUSINESS UNDERSTANDING")
+print("="*60)
+
+print("""
+Goal:
+Predict whether a cancer patient is Alive or Deceased
+based on age, gender, cancer type, stage,
+treatment and survival months.
+""")
+
+# ==========================================================
+# 2. DATA UNDERSTANDING
+# ==========================================================
+
+print("\n"+"="*60)
+print("DATA UNDERSTANDING")
+print("="*60)
+
+df = pd.read_csv("D:\india_cancer_patients_2022_2025.csv")
+
+print("\nFirst 5 Records")
+print(df.head())
+
+print("\nDataset Shape")
+print(df.shape)
+
+print("\nColumn Names")
+print(df.columns)
+
+print("\nDataset Info")
+print(df.info())
+
+print("\nMissing Values")
+print(df.isnull().sum())
+
+print("\nStatistical Summary")
+print(df.describe())
+
+# ==========================================================
+# Visualizations
+# ==========================================================
+
+plt.figure(figsize=(7,5))
+sns.histplot(df["Age"], bins=10)
+plt.title("Age Distribution")
+plt.show()
+
+plt.figure(figsize=(6,4))
+sns.countplot(x="Gender", data=df)
+plt.title("Gender Distribution")
+plt.show()
+
+plt.figure(figsize=(10,5))
+sns.countplot(x="Cancer_Type", data=df)
+plt.xticks(rotation=45)
+plt.title("Cancer Types")
+plt.show()
+
+plt.figure(figsize=(6,4))
+sns.countplot(x="Stage", data=df)
+plt.title("Cancer Stage")
+plt.show()
+
+plt.figure(figsize=(10,5))
+sns.countplot(x="Treatment_Type", data=df)
+plt.xticks(rotation=20)
+plt.title("Treatment Types")
+plt.show()
+
+# ==========================================================
+# 3. DATA PREPARATION
+# ==========================================================
+
+print("\n"+"="*60)
+print("DATA PREPARATION")
+print("="*60)
+
+# Remove duplicates
+df = df.drop_duplicates()
+
+# Remove spaces from column names
+df.columns = df.columns.str.strip()
+
+# Convert date into datetime
+df["Diagnosis_Date"] = pd.to_datetime(df["Diagnosis_Date"])
+
+# Extract year, month and day
+df["Diagnosis_Year"] = df["Diagnosis_Date"].dt.year
+df["Diagnosis_Month"] = df["Diagnosis_Date"].dt.month
+df["Diagnosis_Day"] = df["Diagnosis_Date"].dt.day
+
+# Remove original date column
+df.drop("Diagnosis_Date", axis=1, inplace=True)
+
+# Fill missing values
+for col in df.columns:
+    if df[col].dtype == "object":
+        df[col] = df[col].fillna(df[col].mode()[0])
+    else:
+        df[col] = df[col].fillna(df[col].median())
+
+# Encode categorical variables
+encoder = LabelEncoder()
+
+cat_cols = [
+    "Gender",
+    "State",
+    "City",
+    "Hospital_Name",
+    "Cancer_Type",
+    "Stage",
+    "Treatment_Type",
+    "Status"
+]
+
+for col in cat_cols:
+    df[col] = encoder.fit_transform(df[col])
+
+print(df.head())
+
+# Features and Target
+X = df.drop(["Patient_ID","Status"], axis=1)
+y = df["Status"]
+
+print("\nFeature Shape :", X.shape)
+print("Target Shape :", y.shape)
+
+# ==========================================================
+# 4. MODELING
+# ==========================================================
+
+print("\n"+"="*60)
+print("MODELING")
+print("="*60)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.20,
+    random_state=42
+)
+
+model = DecisionTreeClassifier(random_state=42)
+
+model.fit(X_train, y_train)
+
+prediction = model.predict(X_test)
+
+# ==========================================================
+# 5. EVALUATION
+# ==========================================================
+
+print("\n"+"="*60)
+print("EVALUATION")
+print("="*60)
+
+accuracy = accuracy_score(y_test, prediction)
+
+print("Accuracy :", accuracy)
+
+print("\nClassification Report")
+print(classification_report(y_test, prediction))
+
+print("\nConfusion Matrix")
+print(confusion_matrix(y_test, prediction))
+
+# ==========================================================
+# Feature Importance
+# ==========================================================
+
+importance = pd.DataFrame({
+    "Feature": X.columns,
+    "Importance": model.feature_importances_
+})
+
+importance = importance.sort_values(
+    by="Importance",
+    ascending=False
+)
+
+print("\nFeature Importance")
+print(importance)
+
+plt.figure(figsize=(10,6))
+sns.barplot(
+    data=importance,
+    x="Importance",
+    y="Feature"
+)
+plt.title("Feature Importance")
+plt.show()
+
+# ==========================================================
+# Correlation Heatmap
+# ==========================================================
+
+plt.figure(figsize=(12,8))
+sns.heatmap(df.corr(numeric_only=True),
+            annot=True,
+            cmap="coolwarm")
+
+plt.title("Correlation Matrix")
+plt.show()
+
+# ==========================================================
+# 6. DEPLOYMENT
+# ==========================================================
+
+print("\n"+"="*60)
+print("DEPLOYMENT")
+print("="*60)
+
+sample = X.iloc[[0]]
+
+result = model.predict(sample)
+
+if result[0] == 1:
+    print("Predicted Status : Alive")
+else:
+    print("Predicted Status : Deceased")
+
+print("\nModel is ready for deployment.")
+print("CRISP-DM Process Completed Successfully.")
