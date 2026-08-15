@@ -1,0 +1,43 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
+# Set visual style for academic presentation
+sns.set_theme(style="whitegrid")
+plt.rcParams["font.sans-serif"] = "DejaVu Sans"
+
+# Load the Starbucks dataset
+df = pd.read_csv("starbucks.csv")
+
+# Remove extra spaces from column names
+df.columns = df.columns.str.strip()
+
+print(df.head())
+
+# Sampling points for clear visual clarity
+df_sample = df.sample(n=min(100, len(df)), random_state=42)
+
+plt.figure(figsize=(9, 5))
+
+sns.scatterplot(
+    data=df_sample,
+    x="Calories",
+    y="Sugars_g",
+    hue="Beverage_category",
+    style="Beverage_category",
+    alpha=0.7,
+    s=60,
+)
+
+plt.title(
+    "Calories vs. Sugar Content of Starbucks Beverages",
+    fontsize=14,
+    fontweight="bold",
+)
+plt.xlabel("Calories", fontsize=12)
+plt.ylabel("Sugars (g)", fontsize=12)
+plt.legend(title="Beverage Category", bbox_to_anchor=(1.05, 1), loc="upper left")
+
+plt.tight_layout()
+plt.show()
