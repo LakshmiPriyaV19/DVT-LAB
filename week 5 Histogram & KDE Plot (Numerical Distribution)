@@ -1,0 +1,39 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
+# Set visual style for academic presentation
+sns.set_theme(style="whitegrid")
+plt.rcParams["font.sans-serif"] = "DejaVu Sans"
+
+# Load the Starbucks dataset
+df = pd.read_csv("starbucks.csv")
+
+# Remove extra spaces from column names
+df.columns = df.columns.str.strip()
+
+print(df.head())
+
+plt.figure(figsize=(9, 5))
+
+sns.histplot(
+    data=df,
+    x="Calories",
+    bins=30,
+    kde=True,
+    color="teal",
+    edgecolor="black",
+    alpha=0.6,
+)
+
+plt.title(
+    "Distribution of Calories in Starbucks Beverages",
+    fontsize=14,
+    fontweight="bold"
+)
+plt.xlabel("Calories", fontsize=12)
+plt.ylabel("Number of Beverages", fontsize=12)
+
+plt.tight_layout()
+plt.show()
